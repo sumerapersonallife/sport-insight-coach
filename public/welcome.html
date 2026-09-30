@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Still Ballin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Archivo+Black&family=Bebas+Neue&family=Krona+One&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#000;--fg:#fff;--red:#ff3b3b;--btn:#e8302a}
+:root:not([data-theme="light"]){color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:#000;color:#fff;font-family:'Krona One',Arial,sans-serif;overflow-x:hidden}
+img{display:block;max-width:100%}
+.hero{position:relative;width:100%;aspect-ratio:1027/578;overflow:hidden;background:#3d0f08}
+.bg{position:absolute;inset:-3%;background:url(/__l5e/assets-v1/7bfa7d7d-f4d5-4269-bf24-778c62ddc136/visual-0.jpg) center/cover;filter:blur(2px) saturate(.8);animation:zoom 22s ease-in-out infinite alternate}
+.hero:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(120,22,12,.8),rgba(60,10,5,.92))}
+.hero>*:not(.bg){position:absolute;z-index:2}
+.logo{left:2%;top:2%;width:10.2%;border-radius:50%;animation:drop .9s .1s both cubic-bezier(.2,.8,.2,1)}
+.nav{top:6.5%;font:400 1.75vw Arial,sans-serif;color:#fff;text-decoration:none;padding-bottom:.3vw;background:linear-gradient(#fff,#fff) 0 100%/0 2px no-repeat;transition:background-size .3s;animation:drop .9s .3s both}
+.nav:hover,.nav:focus-visible{background-size:100% 2px;outline:0}
+.seven{left:58%;top:10%;width:29%;animation:wipe 1.6s .5s both cubic-bezier(.6,0,.2,1)}
+@keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.layer{transition:transform .25s ease-out;will-change:transform}
+.grey{left:28%;top:20%;width:13.5%;z-index:4!important;animation:rise 1s .9s both cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 1vw 1.5vw rgba(0,0,0,.5))}
+.juve{left:62.5%;bottom:0;width:17.5%;z-index:4!important;animation:rise 1s .8s both cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 1.2vw 1.5vw rgba(0,0,0,.5))}
+.ron{left:25.8%;bottom:-2%;width:45%;z-index:3;animation:rise 1.1s .5s both cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 1vw 2vw rgba(0,0,0,.45))}
+.h1{z-index:4!important;left:.5%;bottom:-1%;font:800 8.2vw/.9 'Syne',Arial Black,sans-serif;letter-spacing:-.01em;text-transform:uppercase}
+.h1 span{display:block;overflow:hidden}
+.h1 i{display:block;font-style:normal;animation:up .9s both cubic-bezier(.2,.8,.2,1)}
+.h1 span:nth-child(2) i{animation-delay:.15s}.h1 span:nth-child(3) i{animation-delay:.3s}
+@keyframes up{from{transform:translateY(105%)}}
+@keyframes rise{from{opacity:0;transform:translateY(8%)}}
+@keyframes drop{from{opacity:0;transform:translateY(-40%)}}
+@keyframes fade{from{opacity:0}}
+@keyframes zoom{to{transform:scale(1.08)}}
+.rv{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+.offer .dots{animation:pan 6s linear infinite}
+@keyframes pan{to{background-position:9px 9px}}
+.offer .yel{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4;transform:translateX(1.5%)}}
+.offer{position:relative;background:var(--red);aspect-ratio:1022/582;overflow:hidden}
+.offer .dots{position:absolute;inset:0;background:radial-gradient(#000 1.6px,transparent 2.2px) 0 0/9px 9px;-webkit-mask-image:linear-gradient(115deg,#000 0,#000 25%,transparent 45%);mask-image:linear-gradient(115deg,#000 0,#000 25%,transparent 45%)}
+.offer .yel{position:absolute;right:5%;top:1%;width:26%;height:19%;background:radial-gradient(#ffe25a 1.5px,transparent 2.2px) 0 0/9px 9px;-webkit-mask-image:linear-gradient(90deg,transparent,#000);mask-image:linear-gradient(90deg,transparent,#000)}
+.offer img{position:absolute;left:0;top:10%;width:36%;filter:drop-shadow(0 0 2vw rgba(0,0,0,.35))}
+.offer h2{position:absolute;left:1.2%;top:1%;font:400 7vw 'Archivo Black',Arial Black,sans-serif;line-height:1;letter-spacing:-.02em}
+.offer .a{position:absolute;left:1.2%;top:63%;font:400 11.5vw/1 'Bebas Neue',Impact,sans-serif;letter-spacing:.14em;color:#eef0f0}
+.offer .b{position:absolute;left:1.2%;bottom:-4%;font:400 11vw/1 'Bebas Neue',Impact,sans-serif;color:transparent;-webkit-text-stroke:.25vw #fff}
+.sports{background:radial-gradient(circle at 50% 0,#2a0a08,#000 65%);padding:4.5% 4% 5%;text-align:center}
+.sports h2{font:400 4.3vw 'Krona One',Arial Black,sans-serif;letter-spacing:.06em;margin-bottom:5%}
+.grid{display:flex;justify-content:space-around;gap:2%}
+.card{flex:1;max-width:30%}
+.card img{transition:transform .6s cubic-bezier(.2,.8,.2,1);width:18.5vw;height:18.5vw;object-fit:cover;border-radius:50%;border:.5vw solid #fff;margin:0 auto 7%}
+.card h3{font:400 2vw 'Krona One',Arial,sans-serif;letter-spacing:.06em;margin-bottom:5%}
+.card p{font:400 1.5vw/1.6 'Krona One',Arial,sans-serif;width:70%;margin:0 auto 9%}
+.card:hover img{box-shadow:0 0 3vw rgba(255,59,59,.6);transform:rotate(18deg) scale(1.08)}.btn:hover{transform:translateY(-3px) scale(1.05);background:#ff4a3f}.btn{transition:transform .25s,background .25s;display:inline-block;background:var(--btn);color:#fff;font:400 1.3vw 'Krona One',Arial,sans-serif;letter-spacing:.05em;padding:1.3vw 4.6vw;border-radius:99px;text-decoration:none}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.photos{display:flex;gap:.6%;background:#111;padding:.3%}
+.photos{overflow:hidden}.photos img{transition:transform .6s,filter .6s;filter:grayscale(.3);flex:1;min-width:0;height:auto;object-fit:cover}
+@media(max-width:600px){.nav{font-size:2.6vw}.card p{font-size:2vw;width:90%}.card:hover img{box-shadow:0 0 3vw rgba(255,59,59,.6);transform:rotate(18deg) scale(1.08)}.btn:hover{transform:translateY(-3px) scale(1.05);background:#ff4a3f}.btn{transition:transform .25s,background .25s;font-size:1.8vw}}
+.photos img:hover{transform:scale(1.04);filter:none;z-index:1}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}.spot{z-index:5!important;inset:0;pointer-events:none;background:radial-gradient(circle 16vw at var(--x,50%) var(--y,50%),rgba(255,255,255,.14),transparent 70%);mix-blend-mode:screen}
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,#ff3b3b,#ffd84a);z-index:99}
+.mq{background:#ff3b3b;overflow:hidden;white-space:nowrap;padding:1.2vw 0;border-block:3px solid #000;transform:rotate(-1deg) scale(1.03);margin:-1vw 0 1vw;position:relative;z-index:6}
+.mq div{display:inline-block;font:400 3vw 'Bebas Neue',Impact,sans-serif;letter-spacing:.1em;animation:mq 18s linear infinite}
+@keyframes mq{to{transform:translateX(-50%)}}
+.card{transition:transform .2s;transform-style:preserve-3d}.offer h2,.sports h2{transition:letter-spacing .6s}.rv.in h2{letter-spacing:.02em}
+
+.steps{background:radial-gradient(circle at 80% 0,#3a0d0a,#000 60%);padding:6% 5%;text-align:center}
+.steps h2,.cta h2{font:400 4vw 'Krona One',Arial Black,sans-serif;margin-bottom:5%}
+.sg{display:flex;gap:3%}
+.st{flex:1;padding:3vw 2vw;border:1px solid #ffffff26;border-radius:1.4vw;background:#ffffff08;text-align:left;transition:transform .3s,border-color .3s,background .3s}
+.st:hover{transform:translateY(-.8vw);border-color:var(--red);background:#ff3b3b14}
+.st b{display:block;font:400 6vw/1 'Bebas Neue',Impact,sans-serif;color:transparent;-webkit-text-stroke:1.5px var(--red);margin-bottom:1vw}
+.st h3{font:400 1.8vw 'Krona One',Arial,sans-serif;margin-bottom:1vw}
+.st p{font:400 1.3vw/1.7 Arial,sans-serif;color:#ddd}
+.cta{background:var(--red);text-align:center;padding:5% 5%;overflow:hidden;position:relative}
+.cta h2{margin-bottom:3%;font-size:4.6vw}
+.cta .btn{background:#000;font-size:1.4vw;padding:1.5vw 5vw}.cta .btn:hover{background:#fff;color:#000}
+footer{background:#050505;border-top:4px solid var(--red);padding:5% 5% 0;overflow:hidden}
+.fg{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.6fr;gap:4%}
+footer img{width:7vw;border-radius:50%;margin-bottom:1.5vw}
+footer h4{font:400 1.2vw 'Krona One',Arial,sans-serif;margin-bottom:1.4vw;color:var(--red)}
+footer p,footer a{font:400 1.25vw/1.9 Arial,sans-serif;color:#ccc;text-decoration:none;display:block}
+footer a:hover{color:#fff;transform:translateX(.4vw)}footer a{transition:.2s}
+.nl{display:flex;gap:.6vw;margin-top:1vw}
+.nl input{flex:1;min-width:0;padding:1vw 1.4vw;border-radius:99px;border:1px solid #ffffff40;background:#111;color:#fff;font:1.2vw Arial,sans-serif}
+.nl button{border:0;cursor:pointer;background:var(--btn);color:#fff;border-radius:99px;padding:0 2vw;font:400 1.1vw 'Krona One',Arial,sans-serif;transition:transform .2s}.nl button:hover{transform:scale(1.06)}
+.big{font:400 17vw/.85 'Bebas Neue',Impact,sans-serif;color:transparent;-webkit-text-stroke:1.5px #ffffff40;text-align:center;margin-top:3%;transition:color .5s,-webkit-text-stroke-color .5s}
+.big:hover{color:var(--red);-webkit-text-stroke-color:var(--red)}
+.copy{text-align:center;padding:1.5vw 0;font:1.1vw Arial,sans-serif;color:#888}
+@media(max-width:700px){.sg{flex-direction:column}.st h3{font-size:4vw}.st p{font-size:3.2vw}.steps h2,.cta h2{font-size:6vw}.st b{font-size:14vw}.fg{grid-template-columns:1fr 1fr}footer h4,footer p,footer a,.nl input,.nl button,.copy{font-size:3vw}footer img{width:16vw}.cta .btn{font-size:3vw;padding:3vw 9vw}}
+
+.brk{background:#000;padding:6% 5%;text-align:center}
+.brk h2{font:400 4vw 'Krona One',Arial Black,sans-serif;margin-bottom:1.5%}
+.brk>p{font:400 1.4vw Arial,sans-serif;color:#ccc;margin-bottom:3%}
+.hud{display:flex;justify-content:center;gap:4vw;font:400 2.4vw 'Bebas Neue',Impact,sans-serif;letter-spacing:.08em;margin-bottom:1.5vw}
+.hud span b{color:var(--red);font-weight:400}
+#arena{position:relative;height:30vw;border-radius:1.6vw;overflow:hidden;background:repeating-linear-gradient(90deg,#1b6b2f 0 6vw,#1f7a35 6vw 12vw);border:.3vw solid #fff;touch-action:manipulation}
+#arena:before{content:"";position:absolute;inset:4%;border:.25vw solid #ffffff80;border-radius:.6vw}
+#arena .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vw;background:#000a;z-index:2;font:400 2vw 'Krona One',Arial,sans-serif}
+#arena .t.h{display:none}
+#arena .t button{border:0;cursor:pointer;background:var(--btn);color:#fff;font:400 1.4vw 'Krona One',Arial,sans-serif;padding:1.2vw 4vw;border-radius:99px}
+.bl{position:absolute;width:6vw;height:6vw;border:0;background:none;font-size:4.6vw;line-height:6vw;cursor:pointer;animation:pop .25s both}
+.bl:active{transform:scale(.8)}
+@keyframes pop{from{transform:scale(0) rotate(-90deg)}}
+#top{position:fixed;right:2vw;bottom:2vw;width:48px;height:48px;border-radius:50%;border:0;background:var(--btn);color:#fff;font-size:22px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s,transform .2s;z-index:98}
+#top.on{opacity:1;pointer-events:auto}#top:hover{transform:translateY(-4px)}
+@media(max-width:700px){.brk h2{font-size:6vw}.brk>p,#arena .t{font-size:3.2vw}.hud{font-size:6vw}#arena{height:70vw}.bl{width:14vw;height:14vw;font-size:10vw;line-height:14vw}#arena .t button{font-size:3.2vw;padding:3vw 9vw}}
+
+/* Welcome-page navigation and small-screen layout */
+.get-started{position:absolute;z-index:8!important;right:3%;bottom:7%;display:inline-flex;align-items:center;gap:1em;padding:1.15em 1.8em;border-radius:3px;background:var(--btn);color:#fff;text-decoration:none;font:400 clamp(13px,1.35vw,20px) 'Krona One',Arial,sans-serif;box-shadow:0 12px 30px #0008;transition:transform .2s,background .2s}
+.get-started:hover,.get-started:focus-visible{background:#ff4a3f;transform:translateY(-4px);outline:2px solid #fff;outline-offset:3px}
+.unavailable{background:#333;cursor:default;opacity:.8}
+@media(max-width:700px){.hero{aspect-ratio:auto;height:70svh;min-height:470px;max-height:690px}.bg{background-position:center}.logo{width:86px;left:5%;top:3%}.nav{top:9%;font-size:11px}.nav[style*="15%"]{left:30%!important}.nav[style*="27.7%"]{left:53%!important}.nav[style*="67.7%"]{display:none}.nav[style*="86%"]{left:80%!important}.h1{left:3%;bottom:17%;font-size:13vw}.ron{width:88%;left:12%;bottom:5%}.grey{width:25%;left:4%;top:36%}.juve{width:32%;left:65%;bottom:17%}.seven{width:44%;left:52%;top:22%}.get-started{left:4%;right:auto;bottom:3%;font-size:13px;padding:1em 1.4em}.sports h2{font-size:7vw}.sports .grid{flex-direction:column;align-items:center;gap:30px}.sports .card{max-width:90%;width:100%}.card img{width:35vw;height:35vw;margin-bottom:12px}.card h3{font-size:17px;margin-bottom:8px}.card p{font-size:12px;max-width:300px;margin-bottom:13px}.card .btn{font-size:12px;padding:12px 28px}.steps h2,.cta h2{line-height:1.35}.offer{min-height:220px}.offer h2{font-size:7vw}.offer .a{font-size:13vw}.offer .b{font-size:12vw}.brk>p{font-size:13px}.fg{gap:24px}.fg>div{min-width:0}.fg a,.fg p{overflow-wrap:anywhere}}
+@media(prefers-reduced-motion:reduce){.get-started{transition:none}}
+</style></head><body><div id="bar"></div>
+<section class="hero" id="hero">
+<div class="bg"></div><div class="spot"></div>
+<img class="logo" src="/__l5e/assets-v1/b26d4673-4984-4f57-bfff-1eeaa92c530c/visual-1.webp" alt="Still Ballin logo">
+<a class="nav" style="left:15%" href="#sports">Train</a>
+<a class="nav" style="left:27.7%" href="#break">Break time</a>
+<a class="nav" style="left:67.7%" href="#offer">About us</a>
+<a class="nav" style="left:86%" href="#contact">Contact</a>
+
+<a class="get-started" href="/coach" target="_top">GET STARTED <span aria-hidden="true">↗</span></a>
+<h1 class="h1"><span><i>Train.</i></span><span><i>Play.</i></span><span><i>Grow.</i></span></h1>
+<img class="grey layer" data-d="14" src="/__l5e/assets-v1/37f4192a-c7fc-46e4-9c79-337a14ea664b/visual-2.webp" alt="">
+<img class="ron layer" data-d="-16" src="/__l5e/assets-v1/55a1b622-9b7d-4007-b80d-4ddab71ac668/visual-3.webp" alt="Footballer celebrating in a red Portugal shirt">
+<img class="juve layer" data-d="22" src="/__l5e/assets-v1/3dfbc631-4947-49f7-a64a-c993f6e072c2/visual-4.webp" alt="Footballer celebrating on his knees">
+</section>
+<div class="mq" aria-hidden="true"><div>TRAIN ★ PLAY ★ GROW ★ TENNIS ★ BASKETBALL ★ FOOTBALL ★ STILL BALLIN ★ TRAIN ★ PLAY ★ GROW ★ TENNIS ★ BASKETBALL ★ FOOTBALL ★ STILL BALLIN ★ </div></div>
+<section class="offer rv" id="offer">
+<div class="dots"></div><div class="yel"></div>
+<img src="/__l5e/assets-v1/c781b8f5-f26d-4d3c-ab7d-f3b2c9934c36/visual-5.webp" alt="Tennis player mid-swing">
+<h2>WHAT WE OFFER</h2>
+<div class="a">AI-BASED</div><div class="b">SPORTS COACH</div>
+</section>
+<section class="sports rv" id="sports">
+<h2>OUR SPORTS</h2>
+<div class="grid">
+<div class="card"><img src="/__l5e/assets-v1/bcb73ae9-5589-4f23-b3c7-c09d7c52f7ec/visual-6.jpg" alt="Tennis ball"><h3>TENNIS</h3><p>Build a sharper serve and a stronger rally.</p><a class="btn" href="/coach" target="_top">BEGIN</a></div>
+<div class="card"><img src="/__l5e/assets-v1/6c7a1b5a-6289-46bf-8bb4-91dfe6a3f5de/visual-7.jpg" alt="Basketball"><h3>BASKETBALL</h3><p>Improve your handles, shooting, and court vision.</p><span class="btn unavailable" aria-label="Basketball coaching coming soon">COMING SOON</span></div>
+<div class="card"><img src="/__l5e/assets-v1/d4a81a6c-49d3-4c86-bd9e-8b31889afdbf/visual-8.jpg" alt="Football"><h3>FOOTBALL</h3><p>Develop speed, control, and match-winning teamwork.</p><a class="btn" href="/coach" target="_top">BEGIN</a></div>
+</div>
+</section>
+<section class="photos rv" id="photos">
+<img src="/__l5e/assets-v1/f42be0f2-7216-48f8-abdc-97b1ebdee80c/visual-9.jpg" alt="Tennis player celebrating"><img src="/__l5e/assets-v1/eabba457-a412-49bd-b459-e6561eb696ba/visual-10.jpg" alt="Basketball player going up for a layup"><img src="/__l5e/assets-v1/af268a57-e03b-4e3d-8b27-9af42073dea6/visual-11.jpg" alt="Footballer striking the ball">
+</section>
+<section class="brk rv" id="break"><h2>BREAK TIME</h2><p>Ten seconds. Tap every ball you see. Beat your best score.</p>
+<div class="hud"><span>SCORE <b id="sc">0</b></span><span>TIME <b id="tm">10</b></span><span>BEST <b id="bs">0</b></span></div>
+<div id="arena"><div class="t" id="ov"><div id="msg">Ready?</div><button id="go">START</button></div></div></section>
+<button id="top" aria-label="Back to top">&uarr;</button>
+<section class="steps rv"><h2>HOW IT WORKS</h2><div class="sg">
+<div class="st"><b>01</b><h3>TRAIN</h3><p>Pick tennis or football and let your AI coach build drills around your level.</p></div>
+<div class="st"><b>02</b><h3>PLAY</h3><p>Take your drills into real games and sessions, and use what you practised.</p></div>
+<div class="st"><b>03</b><h3>GROW</h3><p>Review how you played, get new targets, and keep getting better every week.</p></div></div></section>
+<section class="cta rv"><h2>READY TO KEEP BALLIN?</h2><a class="btn" href="/coach" target="_top">GET STARTED</a></section>
+<footer id="contact"><div class="fg">
+<div><img src="/__l5e/assets-v1/2d8e37e9-2211-44b5-a369-6e7a62158baa/visual-12.webp" alt="Still Ballin logo"><p>Train. Play. Grow.<br>Your AI sports coach for tennis and football.</p></div>
+<div><h4>Explore</h4><a href="#hero">Train</a><a href="#break">Break time</a><a href="#offer">About us</a><a href="#contact">Contact</a></div>
+<div><h4>Sports</h4><a href="#sports">Tennis</a><a href="#sports">Football</a></div>
+<div><h4>Start training</h4><p>Ready to take your game further?</p><a href="/coach" target="_top">Open your AI coach ↗</a></div></div>
+<div class="big">STILL BALLIN</div><div class="copy">&copy; 2026 Still Ballin. All rights reserved.</div></footer>
+<script>
+(()=>{const A=document.getElementById('arena'),ov=document.getElementById('ov'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),bs=document.getElementById('bs'),msg=document.getElementById('msg');
+let s=0,left=0,T,P,best=0;try{best=+localStorage.getItem('sb')||0}catch(e){}bs.textContent=best;
+const E=['⚽','🏀','🎾'];
+function spawn(){A.querySelectorAll('.bl').forEach(b=>b.remove());const b=document.createElement('button');b.className='bl';b.textContent=E[Math.random()*3|0];b.setAttribute('aria-label','Ball');
+b.style.left=(5+Math.random()*80)+'%';b.style.top=(8+Math.random()*72)+'%';
+b.onclick=()=>{s++;sc.textContent=s;spawn()};A.appendChild(b)}
+function end(){clearInterval(T);A.querySelectorAll('.bl').forEach(b=>b.remove());if(s>best){best=s;bs.textContent=s;try{localStorage.setItem('sb',s)}catch(e){}msg.textContent='New best: '+s+'!'}else msg.textContent='You scored '+s;document.getElementById('go').textContent='PLAY AGAIN';ov.classList.remove('h')}
+document.getElementById('go').onclick=()=>{s=0;left=10;sc.textContent=0;tm.textContent=10;ov.classList.add('h');spawn();T=setInterval(()=>{left--;tm.textContent=left;if(left<=0)end()},1000)};
+const tp=document.getElementById('top');tp.onclick=()=>scrollTo({top:0,behavior:'smooth'});addEventListener('scroll',()=>tp.classList.toggle('on',scrollY>600));})();
+</script>
+
+<script>
+const h=document.getElementById('hero');
+h.addEventListener('mousemove',e=>{const r=h.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+h.querySelectorAll('.layer').forEach(l=>l.style.transform=`translate(${x*l.dataset.d}px,${y*l.dataset.d*.6}px)`)});
+h.addEventListener('mouseleave',()=>h.querySelectorAll('.layer').forEach(l=>l.style.transform=''));
+h.addEventListener('mousemove',e=>{const r=h.getBoundingClientRect();h.style.setProperty('--x',(e.clientX-r.left)+'px');h.style.setProperty('--y',(e.clientY-r.top)+'px')});
+addEventListener('scroll',()=>{const d=document.documentElement;document.getElementById('bar').style.width=scrollY/(d.scrollHeight-innerHeight)*100+'%'});
+document.querySelectorAll('.card').forEach(c=>{c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(700px) rotateY(${x*14}deg) rotateX(${-y*14}deg)`});c.addEventListener('mouseleave',()=>c.style.transform='')});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script></body></html>
