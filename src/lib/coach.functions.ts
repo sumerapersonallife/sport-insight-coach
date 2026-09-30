@@ -97,10 +97,11 @@ Return JSON: {"summary": string (1-2 sentences), "score": integer 1-10 form rati
         },
       );
       if (!res.ok) {
-        const body = await res.text();
-        console.error("Gemini error", res.status, body);
+        console.error("Gemini coaching request failed", res.status);
         const msg =
-          res.status === 429
+          res.status === 401 || res.status === 403
+            ? "The saved Gemini key was rejected. Add a valid Gemini API key to restore coaching tips."
+            : res.status === 429
             ? "The coach is busy right now — try again in a moment."
             : `Coach request failed (${res.status})`;
         return { result: null as CoachResult | null, error: msg };
