@@ -38,21 +38,22 @@ function angle(a: NormalizedLandmark, b: NormalizedLandmark, c: NormalizedLandma
 
 export function poseSummary(lm: NormalizedLandmark[] | undefined) {
   if (!lm || lm.length < 29) return "";
+  const L = lm;
   const trunkLean = Math.round(
     (Math.atan2(
-      (lm[11].x + lm[12].x) / 2 - (lm[23].x + lm[24].x) / 2,
-      (lm[23].y + lm[24].y) / 2 - (lm[11].y + lm[12].y) / 2,
+      (L[11]!.x + L[12]!.x) / 2 - (L[23]!.x + L[24]!.x) / 2,
+      (L[23]!.y + L[24]!.y) / 2 - (L[11]!.y + L[12]!.y) / 2,
     ) * 180) / Math.PI,
   );
   const vals = {
-    leftElbow: angle(lm[11], lm[13], lm[15]),
-    rightElbow: angle(lm[12], lm[14], lm[16]),
-    leftKnee: angle(lm[23], lm[25], lm[27]),
-    rightKnee: angle(lm[24], lm[26], lm[28]),
-    leftHip: angle(lm[11], lm[23], lm[25]),
-    rightHip: angle(lm[12], lm[24], lm[26]),
-    leftShoulder: angle(lm[13], lm[11], lm[23]),
-    rightShoulder: angle(lm[14], lm[12], lm[24]),
+    leftElbow: angle(L[11]!, L[13]!, L[15]!),
+    rightElbow: angle(L[12]!, L[14]!, L[16]!),
+    leftKnee: angle(L[23]!, L[25]!, L[27]!),
+    rightKnee: angle(L[24]!, L[26]!, L[28]!),
+    leftHip: angle(L[11]!, L[23]!, L[25]!),
+    rightHip: angle(L[12]!, L[24]!, L[26]!),
+    leftShoulder: angle(L[13]!, L[11]!, L[23]!),
+    rightShoulder: angle(L[14]!, L[12]!, L[24]!),
     trunkLean,
   };
   return Object.entries(vals).map(([k, v]) => `${k}=${v}`).join(", ");
@@ -63,7 +64,7 @@ export function poseAngles(lm: NormalizedLandmark[] | undefined): Angles {
   const s = poseSummary(lm);
   if (!s) return [];
   return s.split(", ").map((p) => {
-    const [k, v] = p.split("=");
+    const [k = "", v = "0"] = p.split("=");
     return { label: k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()), value: Number(v) };
   });
 }
