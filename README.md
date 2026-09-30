@@ -1,14 +1,16 @@
-# Welcome to your Lovable project
+# Ballin AI Coach
+
+so we are making an ai sports coach its name is still ballin. the first image is the logo. So the user uploads a photo or video or live camera the ai detects player position and tracks the ball and person. the ai then gives tips in text about the angle or posture tactics tips to improve . use the gemini api key for the feedback: AQ.Ab8RN6LTsUVz0csdbqET1y97kv4IB7N-avEIKNqctAuJcefU7Q. here is player pose detection api key
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/d81e5067-6f30-48b4-bd37-f855c5957f69).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +22,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
