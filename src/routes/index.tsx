@@ -249,6 +249,7 @@ function Index() {
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOn(false);
   };
 
@@ -406,13 +407,24 @@ function Index() {
               {source !== "photo" && (
                 <div className={`relative w-full ${hasMedia ? "" : "hidden"}`}>
                   <video
+                    key={source === "video" ? mediaUrl ?? "empty" : "camera"}
                     ref={videoRef}
                     src={source === "video" ? mediaUrl ?? undefined : undefined}
                     className="block w-full"
                     playsInline
                     muted
+                    loop={source === "video"}
+                    autoPlay={source === "video"}
                     controls={source === "video"}
-                    onLoadedData={() => source === "video" && void startLoop()}
+                    onLoadedData={(e) => {
+                      if (source !== "video") return;
+                      void startLoop();
+                      void runDetection(e.currentTarget);
+                      e.currentTarget.play().catch(() => {});
+                    }}
+                    onSeeked={(e) => source === "video" && void runDetection(e.currentTarget)}
+                    onPause={(e) => source === "video" && void runDetection(e.currentTarget)}
+                    onError={() => source === "video" && setStatus("This video format can't play in your browser — try an MP4 (H.264) file")}
                   />
                   <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
                 </div>
