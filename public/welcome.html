@@ -120,7 +120,7 @@ footer a:hover{color:#fff;transform:translateX(.4vw)}footer a{transition:.2s}
 <a class="nav" style="left:67.7%" href="#offer">About us</a>
 <a class="nav" style="left:86%" href="#contact">Contact</a>
 
-<a class="get-started" href="/coach" target="_top">GET STARTED <span aria-hidden="true">↗</span></a>
+<a class="get-started" href="/coach">GET STARTED <span aria-hidden="true">↗</span></a>
 <h1 class="h1"><span><i>Train.</i></span><span><i>Play.</i></span><span><i>Grow.</i></span></h1>
 <img class="grey layer" data-d="14" src="/__l5e/assets-v1/37f4192a-c7fc-46e4-9c79-337a14ea664b/visual-2.webp" alt="">
 <img class="ron layer" data-d="-16" src="/__l5e/assets-v1/55a1b622-9b7d-4007-b80d-4ddab71ac668/visual-3.webp" alt="Footballer celebrating in a red Portugal shirt">
@@ -136,9 +136,9 @@ footer a:hover{color:#fff;transform:translateX(.4vw)}footer a{transition:.2s}
 <section class="sports rv" id="sports">
 <h2>OUR SPORTS</h2>
 <div class="grid">
-<div class="card"><img src="/__l5e/assets-v1/bcb73ae9-5589-4f23-b3c7-c09d7c52f7ec/visual-6.jpg" alt="Tennis ball"><h3>TENNIS</h3><p>Build a sharper serve and a stronger rally.</p><a class="btn" href="/coach" target="_top">BEGIN</a></div>
+<div class="card"><img src="/__l5e/assets-v1/bcb73ae9-5589-4f23-b3c7-c09d7c52f7ec/visual-6.jpg" alt="Tennis ball"><h3>TENNIS</h3><p>Build a sharper serve and a stronger rally.</p><a class="btn" href="/coach">BEGIN</a></div>
 <div class="card"><img src="/__l5e/assets-v1/6c7a1b5a-6289-46bf-8bb4-91dfe6a3f5de/visual-7.jpg" alt="Basketball"><h3>BASKETBALL</h3><p>Improve your handles, shooting, and court vision.</p><span class="btn unavailable" aria-label="Basketball coaching coming soon">COMING SOON</span></div>
-<div class="card"><img src="/__l5e/assets-v1/d4a81a6c-49d3-4c86-bd9e-8b31889afdbf/visual-8.jpg" alt="Football"><h3>FOOTBALL</h3><p>Develop speed, control, and match-winning teamwork.</p><a class="btn" href="/coach" target="_top">BEGIN</a></div>
+<div class="card"><img src="/__l5e/assets-v1/d4a81a6c-49d3-4c86-bd9e-8b31889afdbf/visual-8.jpg" alt="Football"><h3>FOOTBALL</h3><p>Develop speed, control, and match-winning teamwork.</p><a class="btn" href="/coach">BEGIN</a></div>
 </div>
 </section>
 <section class="photos rv" id="photos">
@@ -152,14 +152,19 @@ footer a:hover{color:#fff;transform:translateX(.4vw)}footer a{transition:.2s}
 <div class="st"><b>01</b><h3>TRAIN</h3><p>Pick tennis or football and let your AI coach build drills around your level.</p></div>
 <div class="st"><b>02</b><h3>PLAY</h3><p>Take your drills into real games and sessions, and use what you practised.</p></div>
 <div class="st"><b>03</b><h3>GROW</h3><p>Review how you played, get new targets, and keep getting better every week.</p></div></div></section>
-<section class="cta rv"><h2>READY TO KEEP BALLIN?</h2><a class="btn" href="/coach" target="_top">GET STARTED</a></section>
+<section class="cta rv"><h2>READY TO KEEP BALLIN?</h2><a class="btn" href="/coach">GET STARTED</a></section>
 <footer id="contact"><div class="fg">
 <div><img src="/__l5e/assets-v1/2d8e37e9-2211-44b5-a369-6e7a62158baa/visual-12.webp" alt="Still Ballin logo"><p>Train. Play. Grow.<br>Your AI sports coach for tennis and football.</p></div>
 <div><h4>Explore</h4><a href="#hero">Train</a><a href="#break">Break time</a><a href="#offer">About us</a><a href="#contact">Contact</a></div>
 <div><h4>Sports</h4><a href="#sports">Tennis</a><a href="#sports">Football</a></div>
-<div><h4>Start training</h4><p>Ready to take your game further?</p><a href="/coach" target="_top">Open your AI coach ↗</a></div></div>
+<div><h4>Start training</h4><p>Ready to take your game further?</p><a href="/coach">Open your AI coach ↗</a></div></div>
 <div class="big">STILL BALLIN</div><div class="copy">&copy; 2026 Still Ballin. All rights reserved.</div></footer>
 <script>
+document.querySelectorAll('a[href="/coach"]').forEach(link => link.addEventListener('click', event => {
+  if (window.parent === window) return;
+  event.preventDefault();
+  window.parent.postMessage({ type: 'still-ballin:open-coach' }, window.location.origin);
+}));
 (()=>{const A=document.getElementById('arena'),ov=document.getElementById('ov'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),bs=document.getElementById('bs'),msg=document.getElementById('msg');
 let s=0,left=0,T,P,best=0;try{best=+localStorage.getItem('sb')||0}catch(e){}bs.textContent=best;
 const E=['⚽','🏀','🎾'];
