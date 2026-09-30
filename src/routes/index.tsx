@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,8 +16,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Welcome() {
+  const navigate = useNavigate();
+  const frameRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin || event.source !== frameRef.current?.contentWindow) return;
+      if (event.data?.type === "still-ballin:open-coach") navigate({ to: "/coach" });
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [navigate]);
+
   return (
     <iframe
+      ref={frameRef}
       title="Still Ballin welcome page"
       src="/welcome.html"
       className="block h-dvh w-full border-0"
