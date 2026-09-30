@@ -375,7 +375,7 @@ function Index() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-          <div className="rounded-2xl border bg-card p-4 shadow-glow">
+          <div className="self-start rounded-2xl border bg-card p-4 shadow-glow">
             <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-xl bg-muted">
               {!hasMedia && source !== "camera" && (
                 <label className="flex cursor-pointer flex-col items-center gap-3 p-10 text-center text-muted-foreground">
