@@ -78,24 +78,30 @@ If no athlete is visible, say so in the summary and give general tips.
 Return JSON: {"summary": string (1-2 sentences), "score": integer 1-10 form rating, "tips": [{"category": "Posture"|"Angle"|"Technique"|"Tactics"|"Balance", "title": short string, "tip": 1-2 sentences}] } with 4-6 tips.`;
 
     try {
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { inline_data: { mime_type: "image/jpeg", data: data.image } },
-                  { text: prompt },
-                ],
-              },
+      const body = JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { inline_data: { mime_type: "image/jpeg", data: data.image } },
+              { text: prompt },
             ],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        },
-      );
+          },
+        ],
+        generationConfig: { responseMimeType: "application/json" },
+      });
+      const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-flash-lite-latest"];
+      let res!: Response;
+      for (const model of models) {
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+            body,
+          },
+        );
+        if (res.ok || res.status === 401 || res.status === 403) break;
+      }
       if (!res.ok) {
         console.error("Gemini coaching request failed", res.status);
         const msg =
