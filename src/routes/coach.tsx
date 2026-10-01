@@ -307,6 +307,7 @@ function Index() {
     }
     setCoaching(true);
     setCoachError(null);
+    setCoach(null);
     try {
       const dets = detRef.current.list
         .map((d) => `${d.class}@(${Math.round(d.x)},${Math.round(d.y)}) ${Math.round(d.width)}x${Math.round(d.height)}`)
