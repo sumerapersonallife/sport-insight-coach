@@ -498,20 +498,37 @@ function Index() {
                 <p className="text-sm text-muted-foreground">Press <b>Get coaching tips</b> for feedback on your angle, posture and {sport} tactics.</p>
               )}
               {coach && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4">
-                    <div className="font-display text-5xl text-brand-gradient">{coach.score}/10</div>
-                    <p className="text-sm">{coach.summary}</p>
-                  </div>
-                  {coach.tips.map((t, i) => (
-                    <div key={i} className="rounded-xl bg-secondary p-3">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">{t.category}</span>
-                        <span className="font-semibold">{t.title}</span>
+                <div className="space-y-5" aria-live="polite">
+                  <div className="flex items-start gap-4">
+                    {coach.score !== null && (
+                      <div className="shrink-0 border-r border-border pr-4">
+                        <div className="font-display text-4xl text-primary">{coach.score}/10</div>
+                        <div className="text-xs text-muted-foreground">Form</div>
                       </div>
-                      <p className="text-sm text-muted-foreground">{t.tip}</p>
+                    )}
+                    <p className="text-sm leading-relaxed text-foreground">{coach.summary}</p>
+                  </div>
+                  {coach.tips[0] && (
+                    <div className="border-l-4 border-primary bg-primary/10 px-4 py-4">
+                      <p className="mb-2 text-xs font-bold uppercase text-primary">Start here · {coach.tips[0].category}</p>
+                      <h4 className="text-lg font-bold leading-tight text-foreground">{coach.tips[0].title}</h4>
+                      <p className="mt-2 text-sm leading-relaxed text-foreground">{coach.tips[0].tip}</p>
                     </div>
-                  ))}
+                  )}
+                  {coach.tips.length > 1 && (
+                    <div>
+                      <h4 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Next adjustments</h4>
+                      <div className="divide-y divide-border">
+                        {coach.tips.slice(1).map((t, i) => (
+                          <div key={i} className="py-3 first:pt-0">
+                            <p className="text-xs font-semibold text-accent">{t.category}</p>
+                            <p className="mt-1 font-semibold text-foreground">{t.title}</p>
+                            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.tip}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

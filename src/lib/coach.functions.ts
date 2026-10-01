@@ -52,7 +52,7 @@ export const detectObjects = createServerFn({ method: "POST" })
   });
 
 export type CoachTip = { category: string; title: string; tip: string };
-export type CoachResult = { summary: string; score: number; tips: CoachTip[] };
+export type CoachResult = { summary: string; score: number | null; tips: CoachTip[] };
 
 export const getCoaching = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -69,13 +69,15 @@ export const getCoaching = createServerFn({ method: "POST" })
     const key = process.env["GEMINI_API_KEY"];
     if (!key) return { result: null as CoachResult | null, error: "Coach key missing" };
 
-    const prompt = `You are "Still Ballin", an expert ${data.sport} coach.
-Analyze the athlete in this image. Computer-vision data:
-- Body pose (angles in degrees, from pose tracking): ${data.pose || "not detected"}
-- Detected objects (person / ball / racket boxes, pixel coords): ${data.detections || "none"}
-Give practical, encouraging coaching about body angle, posture, balance, technique and ${data.sport} tactics.
-If no athlete is visible, say so in the summary and give general tips.
-Return JSON: {"summary": string (1-2 sentences), "score": integer 1-10 form rating, "tips": [{"category": "Posture"|"Angle"|"Technique"|"Tactics"|"Balance", "title": short string, "tip": 1-2 sentences}] } with 4-6 tips.`;
+    const prompt = `You are Still Ballin, a perceptive, supportive real-life ${data.sport} coach talking directly to the player after seeing ONE frame. Speak naturally, like a coach on the sideline, not a report or a generic chatbot.
+Visual evidence (can be incomplete or inaccurate):
+- Body pose / measured angles: ${data.pose || "not detected"}
+- Object detections (pixel coordinates): ${data.detections || "none"}
+
+Look at the image yourself. Start the summary with one specific thing the athlete is doing well, if visible, then name the most useful improvement. If you cannot see an athlete clearly, say what is missing and do not pretend to assess their form.
+Give exactly 3 short tips, ordered by importance. The FIRST tip is the single highest-impact correction to try on the next rep. For each tip, use a punchy, conversational title and a tip that connects what you can actually see to one clear physical action or tactical decision and why it helps. Keep the instructions easy to try, encouraging, and specific to ${data.sport}. Do not prescribe an exact angle unless it is reliably measured and meaningful. Do not claim to see a swing, shot trajectory, ball movement, opponent decision, or before/after change from a still frame. For videos and live camera this is also just one captured frame. If visibility is limited, say so and offer a conditional coaching cue instead of inventing observations. Avoid repetitive advice, filler, made-up numbers, or false certainty.
+Only give a 1-10 form score when the athlete and relevant posture are clearly visible; otherwise use null. If no athlete is clearly visible, give at most 2 general, conditional tips rather than personalized corrections.
+Return only JSON: {"summary": string, "score": number|null, "tips": [{"category": "Posture"|"Angle"|"Technique"|"Tactics"|"Balance", "title": string, "tip": string}]}.`;
 
     try {
       const body = JSON.stringify({
@@ -116,12 +118,16 @@ Return JSON: {"summary": string (1-2 sentences), "score": integer 1-10 form rati
         candidates?: { content?: { parts?: { text?: string }[] } }[];
       };
       const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-      const parsed = JSON.parse(text.replace(/^```json\s*|```$/g, "")) as CoachResult;
+      const parsed = z.object({
+        summary: z.string(),
+        score: z.number().nullable().optional(),
+        tips: z.array(z.object({ category: z.string(), title: z.string(), tip: z.string() })),
+      }).parse(JSON.parse(text.replace(/^```json\s*|```$/g, "")));
       return {
         result: {
-          summary: String(parsed.summary ?? ""),
-          score: Math.max(1, Math.min(10, Number(parsed.score) || 5)),
-          tips: Array.isArray(parsed.tips) ? parsed.tips.slice(0, 8) : [],
+          summary: parsed.summary,
+          score: parsed.score == null ? null : Math.max(1, Math.min(10, Math.round(parsed.score))),
+          tips: parsed.tips.slice(0, 3),
         },
         error: null as string | null,
       };
