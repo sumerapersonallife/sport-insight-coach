@@ -11,3 +11,4 @@
 
 - Keep the uploaded welcome experience at `/` and the existing AI coach at `/coach`; this preserves the supplied page while giving Get Started a stable destination.
 - Serve the uploaded self-contained welcome document from `public/welcome.html` in the home route's frame; its original interactive layout and scripts remain isolated from the coach's styles and logic.
+- Serve Fish Audio MP3 requests through a same-origin-validated TanStack Start API route, so the browser receives audio while the provider credential stays server-side.

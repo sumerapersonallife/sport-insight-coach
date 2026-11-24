@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoachRouteImport } from './routes/coach'
+import { Route as ApiPublicCoachVoiceRouteImport } from './routes/api/public/coach-voice'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const CoachRoute = CoachRouteImport.update({
   path: '/coach',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCoachVoiceRoute = ApiPublicCoachVoiceRouteImport.update({
+  id: '/api/public/coach-voice',
+  path: '/api/public/coach-voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/coach': typeof CoachRoute
+  '/api/public/coach-voice': typeof ApiPublicCoachVoiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/coach': typeof CoachRoute
+  '/api/public/coach-voice': typeof ApiPublicCoachVoiceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/coach': typeof CoachRoute
+  '/api/public/coach-voice': typeof ApiPublicCoachVoiceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/coach'
+  fullPaths: '/' | '/coach' | '/api/public/coach-voice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/coach'
-  id: '__root__' | '/' | '/coach'
+  to: '/' | '/coach' | '/api/public/coach-voice'
+  id: '__root__' | '/' | '/coach' | '/api/public/coach-voice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoachRoute: typeof CoachRoute
+  ApiPublicCoachVoiceRoute: typeof ApiPublicCoachVoiceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/coach-voice': {
+      id: '/api/public/coach-voice'
+      path: '/api/public/coach-voice'
+      fullPath: '/api/public/coach-voice'
+      preLoaderRoute: typeof ApiPublicCoachVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoachRoute: CoachRoute,
+  ApiPublicCoachVoiceRoute: ApiPublicCoachVoiceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

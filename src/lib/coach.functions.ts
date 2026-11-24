@@ -53,6 +53,7 @@ export const detectObjects = createServerFn({ method: "POST" })
 
 export type CoachTip = { category: string; title: string; tip: string };
 export type CoachResult = { summary: string; score: number | null; tips: CoachTip[] };
+export type CoachConversationLine = { role: "player" | "coach"; text: string };
 
 export const getCoaching = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -134,5 +135,79 @@ Return only JSON: {"summary": string, "score": number|null, "tips": [{"category"
     } catch (e) {
       console.error(e);
       return { result: null as CoachResult | null, error: "Couldn't read the coach's answer. Try again." };
+    }
+  });
+
+export const talkToCoach = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        sport: sportSchema,
+        text: z.string().trim().min(1).max(600),
+        history: z.array(
+          z.object({ role: z.enum(["player", "coach"]), text: z.string().max(600) }),
+        ).max(8),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const key = process.env["GEMINI_API_KEY"];
+    if (!key) return { text: null as string | null, error: "Coach key missing" };
+
+    const contents = [
+      ...data.history.map((line) => ({
+        role: line.role === "coach" ? "model" : "user",
+        parts: [{ text: line.text }],
+      })),
+      { role: "user", parts: [{ text: data.text }] },
+    ];
+
+    const body = JSON.stringify({
+      systemInstruction: {
+        parts: [{
+          text: `You are Still Ballin, a warm, sharp ${data.sport} coach talking to an athlete beside the court or pitch. Answer the player's latest message directly, like a real coach who knows them. Keep it conversational, encouraging, specific, and easy to say aloud: at most 3 short sentences and 55 words. Give one practical cue when useful, ask at most one focused question, and do not pretend you can see their movement unless they describe it. Avoid lists, markdown, generic filler, and made-up observations. If they ask something unrelated, answer briefly and guide the conversation back to training.`,
+        }],
+      },
+      contents,
+      generationConfig: { maxOutputTokens: 180, temperature: 0.75 },
+    });
+
+    let response: Response | null = null;
+    const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-flash-lite-latest"];
+    try {
+      for (const model of models) {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+            body,
+          },
+        );
+        if (response.ok || response.status === 401 || response.status === 403) break;
+      }
+    } catch {
+      return { text: null as string | null, error: "Couldn't reach the coach. Try again." };
+    }
+
+    if (!response) return { text: null as string | null, error: "The coach is unavailable right now." };
+    if (!response.ok) {
+      const error = response.status === 401 || response.status === 403
+        ? "The coach key was rejected."
+        : response.status === 429
+        ? "The coach is busy right now — try again in a moment."
+        : "Couldn't reach the coach. Try again.";
+      return { text: null as string | null, error };
+    }
+
+    try {
+      const json = (await response.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+      };
+      const text = json.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim();
+      if (!text) return { text: null as string | null, error: "The coach couldn't form a reply. Try again." };
+      return { text: text.slice(0, 700), error: null as string | null };
+    } catch {
+      return { text: null as string | null, error: "The coach couldn't form a reply. Try again." };
     }
   });

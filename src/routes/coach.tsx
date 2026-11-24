@@ -3,13 +3,22 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import {
-  Camera, Image as ImageIcon, Video, Loader2, Sparkles, Upload, Square, Target, Activity,
+  Activity, Camera, Clock3, Image as ImageIcon, Loader2, MessageCircle, Mic, MicOff, Send,
+  Sparkles, Square, Target, Upload, Video, Volume2, VolumeX,
 } from "lucide-react";
 import logo from "@/assets/logo.png.asset.json";
 import {
-  detectObjects, getCoaching, type CoachResult, type Detection,
+  detectObjects, getCoaching, talkToCoach, type CoachConversationLine, type CoachResult, type Detection,
 } from "@/lib/coach.functions";
 import { CONNECTIONS, poseAngles, poseSummary, type Angles } from "@/lib/pose";
+import {
+  canStartNextSession, homeworkAssignment, SESSION_DURATION_HOURS, shouldSpeakCue,
+  type SessionDurationHours,
+} from "@/lib/session-rules";
+import {
+  latestHomework, listSessions, saveCompletedSession, saveHomework,
+  type HomeworkRecord, type SessionRecord,
+} from "@/lib/homework-storage";
 
 export const Route = createFileRoute("/coach")({
   head: () => ({
@@ -28,6 +37,31 @@ export const Route = createFileRoute("/coach")({
 type Sport = "football" | "tennis";
 type Source = "photo" | "video" | "camera";
 type Media = HTMLImageElement | HTMLVideoElement;
+type ActiveSession = SessionRecord & { endsAt: number };
+type SpeechResult = ArrayLike<{ transcript: string }>;
+type SpeechRecognitionEventLike = { results: ArrayLike<SpeechResult> };
+type BrowserSpeechRecognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: new () => BrowserSpeechRecognition;
+  webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+};
+
+function formatClock(milliseconds: number) {
+  const seconds = Math.ceil(Math.max(milliseconds, 0) / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours, minutes, remainder].map((value) => String(value).padStart(2, "0")).join(":");
+}
 
 function captureFrame(media: Media) {
   const w = media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth;
@@ -37,7 +71,9 @@ function captureFrame(media: Media) {
   const c = document.createElement("canvas");
   c.width = Math.round(w * scale);
   c.height = Math.round(h * scale);
-  c.getContext("2d")!.drawImage(media, 0, 0, c.width, c.height);
+  const context = c.getContext("2d");
+  if (!context) return null;
+  context.drawImage(media, 0, 0, c.width, c.height);
   return { image: c.toDataURL("image/jpeg", 0.8).split(",")[1], scale };
 }
 
@@ -56,6 +92,24 @@ function Index() {
   const [coach, setCoach] = useState<CoachResult | null>(null);
   const [coachError, setCoachError] = useState<string | null>(null);
   const [coaching, setCoaching] = useState(false);
+  const [sessionDurationHours, setSessionDurationHours] = useState<SessionDurationHours>(1);
+  const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
+  const [remainingMs, setRemainingMs] = useState(0);
+  const [sessions, setSessions] = useState<SessionRecord[]>([]);
+  const [homework, setHomework] = useState<HomeworkRecord | null>(null);
+  const [homeworkVideoUrl, setHomeworkVideoUrl] = useState<string | null>(null);
+  const [homeworkVideoReady, setHomeworkVideoReady] = useState(false);
+  const [homeworkReviewing, setHomeworkReviewing] = useState(false);
+  const [homeworkError, setHomeworkError] = useState<string | null>(null);
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [conversation, setConversation] = useState<CoachConversationLine[]>([]);
+  const [playerText, setPlayerText] = useState("");
+  const [conversationBusy, setConversationBusy] = useState(false);
+  const [conversationError, setConversationError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceStatus, setVoiceStatus] = useState("Voice ready");
 
   const imgRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -67,9 +121,18 @@ function Index() {
   const detBusy = useRef(false);
   const lastDet = useRef(0);
   const rafRef = useRef<number | null>(null);
+  const homeworkVideoRef = useRef<HTMLVideoElement>(null);
+  const activeSessionRef = useRef<ActiveSession | null>(null);
+  const liveCoachBusyRef = useRef(false);
+  const endingSessionRef = useRef(false);
+  const lastCueRef = useRef({ cue: "", spokenAt: 0 });
+  const voiceCacheRef = useRef(new Map<string, string>());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   const detectFn = useServerFn(detectObjects);
   const coachFn = useServerFn(getCoaching);
+  const talkFn = useServerFn(talkToCoach);
 
   const currentMedia = useCallback((): Media | null => {
     return source === "photo" ? imgRef.current : videoRef.current;

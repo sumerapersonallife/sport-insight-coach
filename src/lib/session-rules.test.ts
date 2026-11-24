@@ -21,6 +21,8 @@ describe("session and coaching rules", () => {
   });
 
   it("requires submitted homework review before a follow-up session", () => {
+    expect(canStartNextSession(null)).toBe(true);
+    expect(canStartNextSession({ status: "awaiting-video" })).toBe(false);
     expect(canStartNextSession({ status: "submitted" })).toBe(false);
     expect(canStartNextSession({ status: "reviewed" })).toBe(true);
   });

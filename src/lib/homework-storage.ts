@@ -95,6 +95,18 @@ export async function saveSession(record: SessionRecord) {
   }
 }
 
+export async function saveCompletedSession(session: SessionRecord, homework: HomeworkRecord) {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(["sessions", "homework"], "readwrite");
+    transaction.objectStore("sessions").put(session);
+    transaction.objectStore("homework").put(homework);
+    await transactionComplete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export async function listSessions() {
   const database = await openDatabase();
   try {
