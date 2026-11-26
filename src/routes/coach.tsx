@@ -6,6 +6,8 @@ import {
   Activity, Camera, Clock3, Image as ImageIcon, Loader2, MessageCircle, Mic, MicOff, Send,
   Sparkles, Square, Target, Upload, Video, Volume2, VolumeX,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png.asset.json";
 import {
   detectObjects, getCoaching, talkToCoach, type CoachConversationLine, type CoachResult, type Detection,
@@ -38,8 +40,8 @@ type Sport = "football" | "tennis";
 type Source = "photo" | "video" | "camera";
 type Media = HTMLImageElement | HTMLVideoElement;
 type ActiveSession = SessionRecord & { endsAt: number };
-type SpeechResult = ArrayLike<{ transcript: string }>;
-type SpeechRecognitionEventLike = { results: ArrayLike<SpeechResult> };
+type SpeechRecognitionResultLike = ArrayLike<{ transcript: string }>;
+type SpeechRecognitionEventLike = { results: ArrayLike<SpeechRecognitionResultLike> };
 type BrowserSpeechRecognition = {
   lang: string;
   continuous: boolean;
@@ -110,10 +112,13 @@ function Index() {
   const [listening, setListening] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceStatus, setVoiceStatus] = useState("Voice ready");
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [sessionSaving, setSessionSaving] = useState(false);
 
   const imgRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const homeworkInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const poseRef = useRef<NormalizedLandmark[][]>([]);
   const detRef = useRef<{ list: Detection[]; scale: number }>({ list: [], scale: 1 });
@@ -127,6 +132,10 @@ function Index() {
   const endingSessionRef = useRef(false);
   const lastCueRef = useRef({ cue: "", spokenAt: 0 });
   const voiceCacheRef = useRef(new Map<string, string>());
+  const lastFeedbackRef = useRef("");
+  const lastVoiceTextRef = useRef("");
+  const lastAutoCoachAtRef = useRef(0);
+  const autoEndStartedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
@@ -134,9 +143,145 @@ function Index() {
   const coachFn = useServerFn(getCoaching);
   const talkFn = useServerFn(talkToCoach);
 
+  const speakCue = useCallback(async (text: string, force = false) => {
+    const cue = text.trim().slice(0, 500);
+    if (!cue) return;
+    lastVoiceTextRef.current = cue;
+    if (!voiceEnabled && !force) return;
+    if (!shouldSpeakCue(cue, lastCueRef.current.cue, lastCueRef.current.spokenAt, Date.now())) return;
+    lastCueRef.current = { cue, spokenAt: Date.now() };
+
+    try {
+      let audioUrl = voiceCacheRef.current.get(cue);
+      if (!audioUrl) {
+        const response = await fetch("/api/public/coach-voice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: cue }),
+        });
+        if (!response.ok) throw new Error("Voice service is not configured");
+        audioUrl = URL.createObjectURL(await response.blob());
+        voiceCacheRef.current.set(cue, audioUrl);
+      }
+
+      const audio = audioRef.current ?? new Audio();
+      audioRef.current = audio;
+      audio.pause();
+      audio.src = audioUrl;
+      audio.onended = () => setVoiceStatus("Voice ready");
+      setVoiceStatus("Speaking");
+      await audio.play();
+    } catch (error) {
+      console.error(error);
+      setVoiceStatus("Voice unavailable — add the Fish Audio key securely");
+    }
+  }, [voiceEnabled]);
+
+  const requestCoach = useCallback(async (media: Media, speak: boolean) => {
+    const frame = captureFrame(media);
+    if (!frame) return null;
+    const detections = detRef.current.list
+      .map((d) => `${d.class}@(${Math.round(d.x)},${Math.round(d.y)}) ${Math.round(d.width)}x${Math.round(d.height)}`)
+      .join("; ");
+
+    try {
+      const response = await coachFn({
+        data: {
+          image: frame.image,
+          sport,
+          pose: poseSummary(poseRef.current[0]),
+          detections,
+        },
+      });
+      if (response.error || !response.result) {
+        setCoachError(response.error ?? "No answer from the coach");
+        return null;
+      }
+
+      const result = response.result;
+      setCoach(result);
+      setCoachError(null);
+      if (speak) {
+        const firstTip = result.tips[0];
+        const cue = [result.summary, firstTip ? `${firstTip.title}. ${firstTip.tip}` : ""]
+          .filter(Boolean)
+          .join(" ")
+          .slice(0, 500);
+        if (cue && cue !== lastFeedbackRef.current) {
+          lastFeedbackRef.current = cue;
+          await speakCue(cue);
+        }
+      }
+      return result;
+    } catch (error) {
+      console.error(error);
+      setCoachError("Couldn't reach the coach. Try again.");
+      return null;
+    }
+  }, [coachFn, sport, speakCue]);
+
+  const sendMessage = useCallback(async (rawText = playerText) => {
+    const text = rawText.trim();
+    if (!text || conversationBusy) return;
+    setPlayerText("");
+    setConversationError(null);
+    setConversation((lines) => [...lines, { role: "player", text }]);
+    setConversationBusy(true);
+    try {
+      const response = await talkFn({ data: { sport, text, history: conversation.slice(-8) } });
+      if (response.error || !response.text) {
+        setConversationError(response.error ?? "The coach couldn't reply. Try again.");
+        return;
+      }
+      setConversation((lines) => [...lines, { role: "coach", text: response.text ?? "" }]);
+      void speakCue(response.text);
+    } catch (error) {
+      console.error(error);
+      setConversationError("Couldn't reach the coach. Try again.");
+    } finally {
+      setConversationBusy(false);
+    }
+  }, [conversation, conversationBusy, playerText, sport, speakCue, talkFn]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let storedVideoUrl: string | null = null;
+    void Promise.all([listSessions(), latestHomework()])
+      .then(([storedSessions, storedHomework]) => {
+        if (cancelled) return;
+        setSessions(storedSessions);
+        setHomework(storedHomework);
+        if (storedHomework?.videoBlob) {
+          storedVideoUrl = URL.createObjectURL(storedHomework.videoBlob);
+          setHomeworkVideoUrl(storedVideoUrl);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!cancelled) setStorageError("Couldn't read saved sessions from this browser");
+      })
+      .finally(() => {
+        if (!cancelled) setStorageReady(true);
+      });
+    return () => {
+      cancelled = true;
+      if (storedVideoUrl) URL.revokeObjectURL(storedVideoUrl);
+    };
+  }, []);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    for (const url of voiceCacheRef.current.values()) URL.revokeObjectURL(url);
+    recognitionRef.current?.stop();
+  }, []);
+
   const currentMedia = useCallback((): Media | null => {
     return source === "photo" ? imgRef.current : videoRef.current;
   }, [source]);
+
+  useEffect(() => {
+    activeSessionRef.current = activeSession;
+  }, [activeSession]);
 
   const draw = useCallback(() => {
     const media = currentMedia();
@@ -147,7 +292,8 @@ function Index() {
     if (!w || !h) return;
     if (canvas.width !== w) canvas.width = w;
     if (canvas.height !== h) canvas.height = h;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.clearRect(0, 0, w, h);
     const primary = cssVar("--primary");
     const accent = cssVar("--accent");
@@ -239,6 +385,7 @@ function Index() {
     setCounts({ players: 0, balls: 0, rackets: 0 });
     setCoach(null);
     setCoachError(null);
+    lastFeedbackRef.current = "";
   };
 
   // Photo analysis
@@ -258,7 +405,7 @@ function Index() {
     }
     await runDetection(img);
     draw();
-    setStatus("Tracking done — tap Get coaching tips");
+    setStatus("Tracking ready");
   }, [draw, runDetection]);
 
   // Video/camera loop
@@ -302,12 +449,24 @@ function Index() {
           void runDetection(v);
         }
         draw();
+        if (
+          source === "camera" &&
+          activeSessionRef.current &&
+          !liveCoachBusyRef.current &&
+          now - lastAutoCoachAtRef.current >= 12_000
+        ) {
+          lastAutoCoachAtRef.current = now;
+          liveCoachBusyRef.current = true;
+          void requestCoach(v, true).finally(() => {
+            liveCoachBusyRef.current = false;
+          });
+        }
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     setStatus("Live tracking on");
-  }, [draw, runDetection]);
+  }, [draw, requestCoach, runDetection, source]);
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -350,7 +509,13 @@ function Index() {
       streamRef.current = stream;
       resetTracking();
       setCameraOn(true);
-      const v = videoRef.current!;
+      const v = videoRef.current;
+      if (!v) {
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        setCameraOn(false);
+        return;
+      }
       v.srcObject = stream;
       await v.play();
       void startLoop();
@@ -363,28 +528,212 @@ function Index() {
   const askCoach = async () => {
     const media = currentMedia();
     if (!media) return;
-    const frame = captureFrame(media);
-    if (!frame) {
-      setCoachError("Load a photo or video first");
-      return;
-    }
     setCoaching(true);
     setCoachError(null);
     setCoach(null);
     try {
-      const dets = detRef.current.list
-        .map((d) => `${d.class}@(${Math.round(d.x)},${Math.round(d.y)}) ${Math.round(d.width)}x${Math.round(d.height)}`)
-        .join("; ");
-      const res = await coachFn({
-        data: { image: frame.image, sport, pose: poseSummary(poseRef.current[0]), detections: dets },
-      });
-      if (res.error || !res.result) setCoachError(res.error ?? "No answer from the coach");
-      else setCoach(res.result);
-    } catch (e) {
-      console.error(e);
-      setCoachError("Couldn't reach the coach. Try again.");
+      await requestCoach(media, false);
     } finally {
       setCoaching(false);
+    }
+  };
+
+  const recordHomeworkVideo = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      setHomeworkError("Choose a video file for your homework");
+      return;
+    }
+    setHomeworkError(null);
+    setHomeworkVideoReady(false);
+    if (homeworkVideoUrl) URL.revokeObjectURL(homeworkVideoUrl);
+    const videoUrl = URL.createObjectURL(file);
+    setHomeworkVideoUrl(videoUrl);
+    const record: HomeworkRecord = {
+      id: homework?.id ?? crypto.randomUUID(),
+      sport: homework?.sport ?? sport,
+      title: homework?.title ?? "Practice reps",
+      instruction: homework?.instruction ?? "Record a short set of focused practice reps.",
+      assignedAt: homework?.assignedAt ?? Date.now(),
+      status: "submitted",
+      fileName: file.name,
+      videoBlob: file,
+      review: null,
+    };
+    try {
+      await saveHomework(record);
+      setHomework(record);
+    } catch (error) {
+      console.error(error);
+      URL.revokeObjectURL(videoUrl);
+      setHomeworkVideoUrl(null);
+      setHomeworkError("Couldn't save this video in your browser");
+    }
+  };
+
+  const reviewHomework = async (record: HomeworkRecord) => {
+    const video = homeworkVideoRef.current;
+    if (!record.videoBlob || !video || video.readyState < 2) {
+      setHomeworkError("Load the homework video before asking for a review");
+      return null;
+    }
+    const frame = captureFrame(video);
+    if (!frame) {
+      setHomeworkError("Couldn't read a frame from this video");
+      return null;
+    }
+    setHomeworkReviewing(true);
+    setHomeworkError(null);
+    try {
+      let detections = "";
+      try {
+        const found = await detectFn({ data: { image: frame.image } });
+        detections = found.detections
+          .map((d) => `${d.class}@(${Math.round(d.x)},${Math.round(d.y)}) ${Math.round(d.width)}x${Math.round(d.height)}`)
+          .join("; ");
+      } catch (error) {
+        console.error(error);
+      }
+      const response = await coachFn({
+        data: { image: frame.image, sport: record.sport, pose: "", detections },
+      });
+      if (response.error || !response.result) {
+        setHomeworkError(response.error ?? "The coach couldn't review this video");
+        return null;
+      }
+      const reviewed: HomeworkRecord = { ...record, status: "reviewed", review: response.result };
+      await saveHomework(reviewed);
+      setHomework(reviewed);
+      return reviewed;
+    } catch (error) {
+      console.error(error);
+      setHomeworkError("Couldn't save the coach's homework review");
+      return null;
+    } finally {
+      setHomeworkReviewing(false);
+    }
+  };
+
+  const startSession = async () => {
+    if (activeSessionRef.current || !storageReady || sessionSaving) return;
+    setSessionError(null);
+    let prerequisite = homework;
+    if (prerequisite?.status === "submitted") {
+      const reviewed = await reviewHomework(prerequisite);
+      if (!reviewed) return;
+      prerequisite = reviewed;
+    }
+    if (!canStartNextSession(prerequisite)) {
+      setSessionError("Submit the assigned homework video before starting your next session");
+      return;
+    }
+    const startedAt = Date.now();
+    const endsAt = startedAt + sessionDurationHours * 60 * 60 * 1000;
+    const session: ActiveSession = {
+      id: crypto.randomUUID(),
+      sport,
+      durationHours: sessionDurationHours,
+      startedAt,
+      endedAt: endsAt,
+      endsAt,
+    };
+    autoEndStartedRef.current = false;
+    activeSessionRef.current = session;
+    setActiveSession(session);
+    setRemainingMs(endsAt - Date.now());
+    setStatus("Session started — live coaching is on when your camera is active");
+  };
+
+  const finishSession = useCallback(async () => {
+    const active = activeSessionRef.current;
+    if (!active || endingSessionRef.current) return;
+    endingSessionRef.current = true;
+    setSessionSaving(true);
+    setSessionError(null);
+    const endedAt = Date.now();
+    const completed: SessionRecord = { ...active, endedAt };
+    const task = homeworkAssignment(completed.sport, sessions.length);
+    const assigned: HomeworkRecord = {
+      id: crypto.randomUUID(),
+      sport: completed.sport,
+      title: task.title,
+      instruction: task.instruction,
+      assignedAt: endedAt,
+      status: "awaiting-video",
+      fileName: null,
+      videoBlob: null,
+      review: null,
+    };
+    try {
+      await saveCompletedSession(completed, assigned);
+      setSessions((previous) => [completed, ...previous.filter((item) => item.id !== completed.id)]
+        .sort((a, b) => b.startedAt - a.startedAt));
+      setHomework(assigned);
+      if (homeworkVideoUrl) URL.revokeObjectURL(homeworkVideoUrl);
+      setHomeworkVideoUrl(null);
+      setHomeworkVideoReady(false);
+      activeSessionRef.current = null;
+      setActiveSession(null);
+      setRemainingMs(0);
+      setStatus("Session complete — homework assigned");
+    } catch (error) {
+      console.error(error);
+      setSessionError("Couldn't save the session. Use End session to try again.");
+    } finally {
+      endingSessionRef.current = false;
+      setSessionSaving(false);
+    }
+  }, [homeworkVideoUrl, sessions.length]);
+
+  useEffect(() => {
+    if (!activeSession) return;
+    const updateClock = () => {
+      const remaining = activeSession.endsAt - Date.now();
+      setRemainingMs(Math.max(0, remaining));
+      if (remaining <= 0 && !autoEndStartedRef.current) {
+        autoEndStartedRef.current = true;
+        void finishSession();
+      }
+    };
+    updateClock();
+    const interval = window.setInterval(updateClock, 1000);
+    return () => window.clearInterval(interval);
+  }, [activeSession, finishSession]);
+
+  const toggleListening = () => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const speechWindow = window as SpeechRecognitionWindow;
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setConversationError("Voice input isn't available in this browser");
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript?.trim();
+      if (transcript) void sendMessage(transcript);
+    };
+    recognition.onerror = () => {
+      setConversationError("Couldn't hear that — try again or type your message");
+      setListening(false);
+    };
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setConversationError(null);
+      setListening(true);
+    } catch (error) {
+      console.error(error);
+      setConversationError("Microphone access was blocked");
+      setListening(false);
     }
   };
 
